@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5章 動きの型カタログ（AE演出31型）</title>
+<style>
+:root {
+  --bg: #f4f5f7; --surface: #fff; --text: #1a1a1a; --sub: #666; --border: #e0e0e0;
+  --c-telop: #4f46e5; --c-scene: #0891b2; --c-emo: #dc2626; --c-comp: #d97706; --c-screen: #16a34a;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111;--surface:#1e1e1e;--text:#f0f0f0;--sub:#999;--border:#333;
+}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;padding:20px 14px;}
+
+header{text-align:center;margin-bottom:18px;}
+header h1{font-size:20px;font-weight:900;}
+header p{color:var(--sub);font-size:12px;margin-top:4px;}
+
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;}
+.filter-btn{padding:7px 14px;border-radius:99px;border:2px solid var(--border);
+  background:var(--surface);color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;transition:.15s;}
+.filter-btn.active,.filter-btn:hover{border-color:currentColor;}
+.filter-btn[data-cat="all"].active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.filter-btn[data-cat="telop"].active{background:var(--c-telop);color:#fff;border-color:var(--c-telop);}
+.filter-btn[data-cat="scene"].active{background:var(--c-scene);color:#fff;border-color:var(--c-scene);}
+.filter-btn[data-cat="emo"].active{background:var(--c-emo);color:#fff;border-color:var(--c-emo);}
+.filter-btn[data-cat="comp"].active{background:var(--c-comp);color:#fff;border-color:var(--c-comp);}
+.filter-btn[data-cat="screen"].active{background:var(--c-screen);color:#fff;border-color:var(--c-screen);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+
+.card{background:var(--surface);border-radius:10px;overflow:hidden;border:1.5px solid var(--border);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.card.hidden{display:none;}
+.preview{width:100%;height:110px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0f172a;}
+.card-info{padding:8px 10px 10px;}
+.num{font-size:10px;font-weight:700;opacity:.4;}
+.name{font-size:15px;font-weight:800;margin:1px 0;}
+.detail{font-size:10px;color:var(--sub);}
+.cat-badge{display:inline-block;margin-top:5px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;}
+.desc{font-size:10px;color:var(--sub);margin-top:4px;line-height:1.5;}
+.instruction{margin-top:6px;background:rgba(0,0,0,.04);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--sub);font-style:italic;}
+
+/* category badge colors */
+.badge-telop{background:#ede9fe;color:#4f46e5;}
+.badge-scene{background:#cffafe;color:#0891b2;}
+.badge-emo{background:#fee2e2;color:#dc2626;}
+.badge-comp{background:#fef3c7;color:#d97706;}
+.badge-screen{background:#dcfce7;color:#16a34a;}
+
+/* ===== ANIMATIONS ===== */
+
+/* 01 ポン置き: scale 0 → 108% → 100% */
+.a-ponoki .box{
+  width:80px;height:32px;background:#818cf8;border-radius:6px;
+  color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  animation:ponoki 2s cubic-bezier(.36,.07,.19,.97) infinite;
+}
+@keyframes ponoki{
+  0%,10%{transform:scale(0);opacity:0}
+  35%{transform:scale(1.08);opacity:1}
+  45%,72%{transform:scale(1);opacity:1}
+  88%,100%{transform:scale(0);opacity:0}
+}
+
+/* 02 すっと出: 下からフェードイン */
+.a-sutto .txt{
+  color:#fff;font-size:14px;font-weight:800;
+  animation:sutto 2.2s ease infinite;
+}
+@keyframes sutto{
+  0%,15%{transform:translateY(20px);opacity:0}
+  40%,70%{transform:translateY(0);opacity:1}
+  88%,100%{opacity:0}
+}
+
+/* 03 ブラーイン: 横ブレ→くっきり */
+.a-blurain .txt{
+  color:#fff;font-size:14px;font-weight:800;
+  animation:blurain 2s ease infinite;
+}
+@keyframes blurain{
+  0%,15%{filter:blur(8px) brightness(1.5);transform:translateX(-8px);opacity:0}
+  40%,70%{filter:blur(0);transform:translateX(0);opacity:1}
+  88%,100%{opacity:0}
+}
+
+/* 04 左からシャッ: 左スライド + モーションブラー */
+.a-shaslide .txt{
+  color:#fff;font-size:14px;font-weight:800;
+  animation:shaslide 1.8s ease infinite;
+}
+@keyframes shaslide{
+  0%,10%{transform:translateX(-80px);opacity:0;filter:blur(6px)}
+  30%{transform:translateX(4px);opacity:1;filter:blur(0)}
+  40%,70%{transform:translateX(0);opacity:1;filter:blur(0)}
+  85%,100%{opacity:0}
+}
+
+/* 05 1文字ずつドン: 大→落ちる */
+.a-donfall{gap:2px;}
+.a-donfall .ch{
+  color:#fff;font-size:18px;font-weight:900;display:inline-block;
+  animation:donfall 2.4s ease infinite;
+}
+.a-donfall .ch:nth-child(1){animation-delay:0s;}
+.a-donfall .ch:nth-child(2){animation-delay:.12s;}
+.a-donfall .ch:nth-child(3){animation-delay:.24s;}
+.a-donfall .ch:nth-child(4){animation-delay:.36s;}
+@keyframes donfall{
+  0%,10%{transform:scale(2) translateY(-10px);opacity:0}
+  25%{transform:scale(1.05) translateY(0);opacity:1}
+  35%,65%{transform:scale(1);opacity:1}
+  82%,100%{opacity:0}
+}
+
+/* 06 積み上げ＋虹色ずれ */
+.a-tsumiue{flex-direction:column;gap:0;}
+.a-tsumiue .ch{
+  display:block;font-size:22px;font-weight:900;
+  animation:tsumiue 2.8s ease infinite;
+}
+.a-tsumiue .ch:nth-child(1){animation-delay:.0s;}
+.a-tsumiue .ch:nth-child(2){animation-delay:.18s;}
+.a-tsumiue .ch:nth-child(3){animation-delay:.36s;}
+@keyframes tsumiue{
+  0%,15%{transform:translateY(-30px);opacity:0;color:#fff;}
+  30%{transform:translateY(3px);opacity:1;color:#f0f;text-shadow:2px 0 #0ff,-2px 0 #f00;}
+  40%,65%{transform:translateY(0);opacity:1;color:#fff;text-shadow:none;}
+  85%,100%{opacity:0;}
+}
+
+/* 07 光の帯 */
+.a-hikarinobi{position:relative;}
+.a-hikarinobi .txt{color:#fff;font-size:18px;font-weight:900;position:relative;overflow:hidden;}
+.a-hikarinobi .sweep{
+  position:absolute;top:0;bottom:0;width:40px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);
+  animation:hikarinobi 2.5s ease infinite;
+}
+@keyframes hikarinobi{
+  0%,20%{left:-40px}
+  60%,80%{left:120px}
+  85%,100%{left:-40px}
+}
+
+/* 08 人物の後ろに置く */
+.a-ushiromuki{position:relative;}
+.a-ushiromuki .person{
+  position:absolute;width:28px;height:55px;background:rgba(255,255,255,.6);border-radius:4px 4px 2px 2px;
+  bottom:12px;left:50%;transform:translateX(-50%);z-index:2;
+}
+.a-ushiromuki .person::before{
+  content:'';position:absolute;width:18px;height:18px;background:rgba(255,255,255,.7);
+  border-radius:50%;top:-20px;left:50%;transform:translateX(-50%);
+}
+.a-ushiromuki .telop{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.9);font-size:11px;font-weight:800;white-space:nowrap;z-index:1;
+  animation:ushiro 2.5s ease infinite;
+}
+@keyframes ushiro{
+  0%,15%{opacity:0;transform:translateX(-50%) translateY(8px)}
+  35%,70%{opacity:1;transform:translateX(-50%) translateY(0)}
+  88%,100%{opacity:0}
+}
+
+/* 09 ズームブラー */
+.a-zoomblur .scene{
+  width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0f2040);
+  display:flex;align-items:center;justify-content:center;
+  animation:zoomblur 2.5s ease infinite;
+}
+.a-zoomblur .dot{width:12px;height:12px;background:rgba(255,255,255,.5);border-radius:50%;}
+@keyframes zoomblur{
+  0%,30%{transform:scale(1);filter:blur(0)}
+  55%{transform:scale(3);filter:blur(6px)}
+  56%,100%{transform:scale(1);filter:blur(0)}
+}
+
+/* 10 回転ブラー */
+.a-kaiteblur .scene{
+  width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0f2040);
+  display:flex;align-items:center;justify-content:center;
+  animation:kaiteblur 2.5s ease infinite;
+}
+.a-kaiteblur .dot{width:12px;height:12px;background:rgba(255,255,255,.5);border-radius:50%;}
+@keyframes kaiteblur{
+  0%,30%{transform:rotate(0deg) scale(1);filter:blur(0)}
+  55%{transform:rotate(180deg) scale(2);filter:blur(5px)}
+  56%,100%{transform:rotate(0deg) scale(1);filter:blur(0)}
+}
+
+/* 11 白フラッシュ */
+.a-shiroflash .bg{position:absolute;inset:0;background:linear-gradient(135deg,#1e3a5f,#0f2040);}
+.a-shiroflash .flash{position:absolute;inset:0;background:#fff;animation:shiroflash 2.5s ease infinite;}
+@keyframes shiroflash{
+  0%,40%{opacity:0}
+  50%{opacity:1}
+  65%,100%{opacity:0}
+}
+
+/* 12 ウィップ */
+.a-whip .scene-a{position:absolute;inset:0;background:linear-gradient(135deg,#1e3a5f,#0f2040);animation:whip-a 2.5s ease infinite;}
+.a-whip .scene-b{position:absolute;inset:0;background:linear-gradient(135deg,#1e3a2a,#0f2010);animation:whip-b 2.5s ease infinite;}
+@keyframes whip-a{0%,35%{transform:translateX(0) scaleX(1);filter:blur(0)}52%,100%{transform:translateX(-130%) scaleX(0.2);filter:blur(4px)}}
+@keyframes whip-b{0%,35%{transform:translateX(130%) scaleX(0.2);filter:blur(4px)}52%,80%{transform:translateX(0) scaleX(1);filter:blur(0)}90%,100%{transform:translateX(0)}}
+
+/* 13 ビクッ */
+.a-bikku .box{
+  width:70px;height:28px;background:#818cf8;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:12px;font-weight:800;
+  animation:bikku 2s ease infinite;
+}
+.a-bikku .lines{position:absolute;top:8px;right:10px;display:flex;flex-direction:column;gap:2px;animation:bikku-lines 2s ease infinite;}
+.a-bikku .line{width:3px;height:12px;background:#fbbf24;transform:rotate(-20deg);border-radius:2px;}
+@keyframes bikku{
+  0%,30%{transform:translate(0,0);opacity:1}
+  35%{transform:translate(-3px,-6px) rotate(-3deg)}
+  38%{transform:translate(3px,-2px) rotate(2deg)}
+  41%{transform:translate(-2px,0) rotate(-1deg)}
+  44%{transform:translate(2px,0) rotate(1deg)}
+  48%,70%{transform:translate(0,0) rotate(0)}
+  85%,100%{opacity:0}
+}
+@keyframes bikku-lines{
+  0%,32%{opacity:0;transform:scale(0)}
+  35%,60%{opacity:1;transform:scale(1)}
+  75%,100%{opacity:0}
+}
+
+/* 14 不安演出 */
+.a-fuan .scene{
+  width:100%;height:100%;
+  background:radial-gradient(ellipse at center,rgba(50,50,80,.6) 30%,rgba(0,0,0,.9) 100%);
+  display:flex;align-items:center;justify-content:center;
+  animation:fuan 3s ease-in-out infinite;
+}
+.a-fuan .face{width:20px;height:20px;background:rgba(180,200,220,.4);border-radius:50%;animation:fuan-face 3s ease-in-out infinite;}
+@keyframes fuan{0%,100%{filter:saturate(0.2) brightness(0.7)}50%{filter:saturate(0.1) brightness(0.6)}}
+@keyframes fuan-face{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* 15 NGハンコ */
+.a-nghanko .stamp{
+  width:52px;height:52px;border:4px solid #ef4444;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:#ef4444;font-size:22px;font-weight:900;transform:rotate(-18deg);
+  animation:nghanko 2s ease infinite;opacity:0;
+}
+@keyframes nghanko{
+  0%,25%{opacity:0;transform:rotate(-18deg) scale(1.6)}
+  38%{opacity:1;transform:rotate(-18deg) scale(0.9)}
+  42%,68%{opacity:1;transform:rotate(-18deg) scale(1)}
+  85%,100%{opacity:0}
+}
+
+/* 16 怒り演出 */
+.a-ikari .lines{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.a-ikari .ray{position:absolute;width:2px;background:#f87171;height:40px;transform-origin:center center;border-radius:2px;}
+.a-ikari .mark{position:absolute;top:22px;right:18px;font-size:14px;animation:ikari-mark 0.5s ease infinite;}
+.a-ikari .center{position:absolute;width:100%;height:100%;animation:ikari-shake 0.08s ease infinite;}
+@keyframes ikari-mark{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+@keyframes ikari-shake{0%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,2px)}100%{transform:translate(0,0)}}
+
+/* 17 ガーン（絶望） */
+.a-gaan .bg{position:absolute;inset:0;background:#1a2030;animation:gaan-bg 2.5s ease infinite;}
+.a-gaan .line{position:absolute;top:0;width:6px;border-radius:3px;background:rgba(50,60,100,.8);animation:gaan-line 2.5s ease infinite;}
+.a-gaan .line:nth-child(2){left:25%;}
+.a-gaan .line:nth-child(3){left:50%;}
+.a-gaan .line:nth-child(4){left:75%;}
+.a-gaan .txt{position:absolute;bottom:12px;color:rgba(150,160,200,.6);font-size:11px;font-weight:700;writing-mode:vertical-rl;}
+@keyframes gaan-bg{0%,20%{filter:saturate(1)}50%,100%{filter:saturate(0.1) brightness(0.6)}}
+@keyframes gaan-line{0%,25%{height:0;opacity:0}55%,80%{height:80px;opacity:1}95%,100%{opacity:0}}
+
+/* 18 光漏れ */
+.a-hikarimori .bg{position:absolute;inset:0;background:#1a1a2a;animation:hikarimori-bg 2.5s ease infinite;}
+.a-hikarimori .ray1{position:absolute;width:60px;height:130px;background:linear-gradient(160deg,transparent,rgba(255,160,60,.5),transparent);top:-20px;left:-10px;transform:rotate(25deg);animation:hikarimori-ray 2.5s ease infinite;}
+.a-hikarimori .ray2{position:absolute;width:40px;height:130px;background:linear-gradient(160deg,transparent,rgba(255,120,180,.3),transparent);top:-20px;left:20px;transform:rotate(20deg);animation:hikarimori-ray 2.5s ease .1s infinite;}
+@keyframes hikarimori-bg{0%,20%{background:#1a1a2a}70%,100%{background:#2a1a1a}}
+@keyframes hikarimori-ray{0%,20%{transform:translateX(-60px) rotate(25deg);opacity:0}55%{transform:translateX(130px) rotate(25deg);opacity:1}75%,100%{transform:translateX(160px) rotate(25deg);opacity:0}}
+
+/* 19 揺れ（シェイク） */
+.a-yure .box{
+  width:80px;height:30px;background:#818cf8;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:12px;font-weight:800;
+  animation:yure 2s ease infinite;
+}
+@keyframes yure{
+  0%,25%{transform:translate(0,0)}
+  28%{transform:translate(-5px,2px)}
+  31%{transform:translate(5px,-2px)}
+  34%{transform:translate(-4px,1px)}
+  37%{transform:translate(4px,-1px)}
+  40%{transform:translate(-3px,1px)}
+  43%{transform:translate(3px,-1px)}
+  46%{transform:translate(-2px,0)}
+  49%{transform:translate(2px,0)}
+  52%,100%{transform:translate(0,0)}
+}
+
+/* 20 グリッチ */
+.a-glitch .txt{
+  color:#fff;font-size:18px;font-weight:900;position:relative;
+  animation:glitch-main 1.8s step-end infinite;
+}
+.a-glitch .txt::before{
+  content:attr(data-text);position:absolute;left:0;top:0;color:#f00;
+  clip-path:polygon(0 20%,100% 20%,100% 45%,0 45%);
+  animation:glitch-r 1.8s step-end infinite;
+}
+.a-glitch .txt::after{
+  content:attr(data-text);position:absolute;left:0;top:0;color:#0ff;
+  clip-path:polygon(0 55%,100% 55%,100% 80%,0 80%);
+  animation:glitch-b 1.8s step-end infinite;
+}
+@keyframes glitch-main{20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+@keyframes glitch-r{20%{transform:translateX(6px)}40%{transform:translateX(-6px)}}
+@keyframes glitch-b{20%{transform:translateX(-5px)}60%{transform:translateX(5px)}}
+
+/* 21 スマホ枠 */
+.a-sumaho .frame{
+  width:42px;height:80px;border:3px solid rgba(255,255,255,.6);border-radius:8px;
+  position:relative;display:flex;align-items:center;justify-content:center;
+  animation:sumaho 2.5s ease infinite;
+}
+.a-sumaho .frame::before{content:'';position:absolute;top:4px;width:10px;height:2px;background:rgba(255,255,255,.4);border-radius:1px;}
+.a-sumaho .screen{width:34px;height:65px;background:rgba(60,130,200,.3);border-radius:4px;overflow:hidden;}
+.a-sumaho .content{width:100%;height:100%;background:linear-gradient(180deg,#1e3a5f 30%,#2d5a8f 100%);animation:sumaho-content 2.5s ease infinite;}
+@keyframes sumaho{0%,15%{transform:translateX(-40px) rotate(-5deg);opacity:0}35%,70%{transform:translateX(0) rotate(0);opacity:1}88%,100%{opacity:0}}
+@keyframes sumaho-content{0%,50%{transform:translateY(0)}100%{transform:translateY(-20px)}}
+
+/* 22 通知バナー */
+.a-tsuchi .banner{
+  position:absolute;top:0;left:6%;right:6%;height:30px;background:rgba(30,30,40,.95);
+  border-radius:0 0 8px 8px;display:flex;align-items:center;gap:6px;padding:0 10px;
+  animation:tsuchi 2.5s ease infinite;
+}
+.a-tsuchi .icon{width:16px;height:16px;background:#60a5fa;border-radius:4px;flex-shrink:0;}
+.a-tsuchi .txt{color:rgba(255,255,255,.9);font-size:9px;}
+@keyframes tsuchi{0%,20%{transform:translateY(-35px);opacity:0}38%,65%{transform:translateY(0);opacity:1}82%,100%{transform:translateY(-35px);opacity:0}}
+
+/* 23 プロフカード */
+.a-prof .card{
+  width:90px;height:55px;background:linear-gradient(135deg,#1e3a5f,#2d5a8f);border-radius:8px;
+  border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;padding:6px;gap:6px;
+  animation:prof 2.5s ease infinite;
+}
+.a-prof .avatar{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.4);flex-shrink:0;}
+.a-prof .info{display:flex;flex-direction:column;gap:2px;}
+.a-prof .n{width:40px;height:6px;background:rgba(255,255,255,.6);border-radius:2px;}
+.a-prof .h{width:30px;height:4px;background:rgba(255,255,255,.3);border-radius:2px;}
+@keyframes prof{0%,15%{transform:perspective(300px) rotateY(-20deg) translateX(-30px);opacity:0}38%,68%{transform:perspective(300px) rotateY(0) translateX(0);opacity:1}85%,100%{opacity:0}}
+
+/* 24 縦書き大文字 */
+.a-tategaki{justify-content:space-between;padding:0 12px;}
+.a-tategaki .word{
+  color:rgba(255,255,255,.8);font-size:20px;font-weight:900;writing-mode:vertical-rl;
+  animation:tategaki 2.5s ease infinite;
+}
+.a-tategaki .word:last-child{animation-delay:.2s;}
+@keyframes tategaki{0%,20%{opacity:0;transform:translateY(-10px)}40%,70%{opacity:1;transform:translateY(0)}88%,100%{opacity:0}}
+
+/* 25 色帯ラベル */
+.a-irotai .label{
+  padding:6px 16px;border-radius:4px;
+  color:#fff;font-size:13px;font-weight:800;
+  animation:irotai 2.5s ease infinite;
+}
+.a-irotai .label:first-child{background:#4f46e5;margin-bottom:6px;}
+.a-irotai .label:last-child{background:#dc2626;animation-delay:.15s;}
+@keyframes irotai{0%,15%{transform:scaleX(0);opacity:0;transform-origin:left center}35%,65%{transform:scaleX(1);opacity:1}82%,100%{opacity:0}}
+
+/* 26 章の扉 */
+.a-tobira{flex-direction:column;gap:6px;}
+.a-tobira .num{color:rgba(255,255,255,.4);font-size:11px;font-weight:700;}
+.a-tobira .title{color:#fff;font-size:16px;font-weight:900;animation:tobira 2.5s ease infinite;}
+.a-tobira .line{width:50px;height:2px;background:rgba(255,255,255,.3);animation:tobira-line 2.5s ease .2s infinite;}
+@keyframes tobira{0%,15%{opacity:0;transform:translateY(10px)}35%,70%{opacity:1;transform:translateY(0)}88%,100%{opacity:0}}
+@keyframes tobira-line{0%,20%{width:0;opacity:0}40%,70%{width:50px;opacity:1}88%,100%{opacity:0}}
+
+/* 27 章名の帯 */
+.a-obiobi .header{
+  position:absolute;top:0;left:0;right:0;height:24px;background:rgba(15,23,42,.85);
+  display:flex;align-items:center;padding:0 8px;
+  color:rgba(255,255,255,.8);font-size:9px;font-weight:700;
+  animation:obiobi 2.5s ease infinite;
+}
+.a-obiobi .content{position:absolute;top:24px;left:0;right:0;bottom:0;background:linear-gradient(135deg,#1e3a5f,#0f2040);}
+@keyframes obiobi{0%,15%{transform:translateY(-24px);opacity:0}35%,80%{transform:translateY(0);opacity:1}95%,100%{opacity:1}}
+
+/* 28 赤枠ドロー */
+.a-akawaku .frame{
+  width:70px;height:50px;border:0 solid #ef4444;border-radius:3px;
+  animation:akawaku 2.5s ease infinite;
+}
+@keyframes akawaku{
+  0%,20%{width:0;height:0;border-width:0;opacity:0}
+  35%{width:70px;height:0;border-width:2px;opacity:1}
+  50%,72%{width:70px;height:50px;border-width:2px;opacity:1}
+  88%,100%{opacity:0}
+}
+
+/* 29 スポットライト */
+.a-spot .bg{position:absolute;inset:0;background:#0f172a;}
+.a-spot .frame{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:70px;height:50px;border:2px solid #ef4444;border-radius:3px;
+  box-shadow:0 0 0 100px rgba(0,0,0,.7);
+  animation:spot 2.5s ease infinite;
+}
+@keyframes spot{
+  0%,20%{opacity:0;width:30px;height:20px}
+  40%,70%{opacity:1;width:70px;height:50px}
+  88%,100%{opacity:0}
+}
+
+/* 30 マーカー */
+.a-marker .txt{
+  color:#fff;font-size:13px;font-weight:800;position:relative;
+}
+.a-marker .txt::after{
+  content:'';position:absolute;left:0;bottom:-3px;height:4px;background:#fbbf24;border-radius:2px;
+  animation:marker 2.5s ease infinite;
+}
+@keyframes marker{
+  0%,20%{width:0;opacity:0}
+  45%,70%{width:100%;opacity:0.7}
+  88%,100%{opacity:0}
+}
+
+/* 31 寄りパン */
+.a-yoripan .scene{
+  width:100%;height:100%;background:linear-gradient(135deg,#0c1220,#1a2540);
+  display:flex;align-items:center;justify-content:center;
+  animation:yoripan 3s ease-in-out infinite;
+}
+.a-yoripan .cursor{
+  width:16px;height:16px;border:2px solid #ef4444;border-radius:50%;
+  position:absolute;animation:yoripan-cursor 3s ease-in-out infinite;
+}
+@keyframes yoripan{0%,15%{transform:scale(1) translateX(0)}65%,80%{transform:scale(2) translateX(-10px)}95%,100%{transform:scale(1) translateX(0)}}
+@keyframes yoripan-cursor{0%,15%{transform:scale(1);opacity:0}35%,65%{opacity:1;transform:scale(1)}80%,100%{opacity:0}}
+
+footer{text-align:center;margin-top:28px;color:var(--sub);font-size:11px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>第5章 動きの型カタログ</h1>
+  <p>AE×Claude Code ／ 型の名前を言うだけで演出を適用できます</p>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-cat="all">すべて（31型）</button>
+  <button class="filter-btn" data-cat="telop">テロップの出し方</button>
+  <button class="filter-btn" data-cat="scene">場面転換</button>
+  <button class="filter-btn" data-cat="emo">感情・強調</button>
+  <button class="filter-btn" data-cat="comp">差し込み・構成</button>
+  <button class="filter-btn" data-cat="screen">画面解説</button>
+</div>
+
+<div class="grid">
+
+  <!-- テロップ 01-08 -->
+  <div class="card" data-cat="telop">
+    <div class="preview a-ponoki"><div class="box">テロップ</div></div>
+    <div class="card-info">
+      <div class="num">01</div><div class="name">ポン置き</div>
+      <div class="detail">0 → 108% → 100%</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">小さめから少し大きくなって元に戻る。吹き出し・カード・普通のテロップ</div>
+      <div class="instruction">「ポン置きで出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-sutto"><div class="txt">説明テロップ</div></div>
+    <div class="card-info">
+      <div class="num">02</div><div class="name">すっと出</div>
+      <div class="detail">下からフェードイン</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">下から少し上がりながらフェードイン。落ち着いた説明の入り</div>
+      <div class="instruction">「下からすっと出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-blurain"><div class="txt">ブラーイン</div></div>
+    <div class="card-info">
+      <div class="num">03</div><div class="name">ブラーイン</div>
+      <div class="detail">横ブレ → くっきり</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">横にブレた状態からくっきりになる。ほぼすべてのテロップに</div>
+      <div class="instruction">「ブラーインで出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-shaslide"><div class="txt">左からシャッ</div></div>
+    <div class="card-info">
+      <div class="num">04</div><div class="name">左からシャッ</div>
+      <div class="detail">スライドイン + モーションブラー</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">左の外から素早くスライドイン。動いている間だけ横にブレる</div>
+      <div class="instruction">「左からシャッと入れて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-donfall"><div class="ch">決</div><div class="ch">め</div><div class="ch">台</div><div class="ch">詞</div></div>
+    <div class="card-info">
+      <div class="num">05</div><div class="name">1文字ずつドン</div>
+      <div class="detail">大 → ストンと落ちる</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">1文字ずつ、大きいところからストンと落ちる。短い決め台詞</div>
+      <div class="instruction">「1文字ずつドンで」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-tsumiue" style="flex-direction:column;gap:0"><div class="ch">最</div><div class="ch">強</div><div class="ch">！</div></div>
+    <div class="card-info">
+      <div class="num">06</div><div class="name">積み上げ＋虹色ずれ</div>
+      <div class="detail">縦に積み + 虹色グリッチ</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">1文字ずつ縦に積み上がり、出た瞬間だけ虹色にずれる。動画で一番強い一言</div>
+      <div class="instruction">「縦に積み上げて、出た瞬間だけ虹色にずれさせて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-hikarinobi">
+      <div class="txt" style="position:relative;overflow:hidden">KEYWORD<div class="sweep"></div></div>
+    </div>
+    <div class="card-info">
+      <div class="num">07</div><div class="name">光の帯</div>
+      <div class="detail">文字の中を光が通る</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">文字の形の中だけを白い光の帯が通る。ポジティブなキーワードの仕上げ</div>
+      <div class="instruction">「文字の中を光の帯が通るようにして」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="telop">
+    <div class="preview a-ushiromuki">
+      <div class="telop">テロップ</div>
+      <div class="person"></div>
+    </div>
+    <div class="card-info">
+      <div class="num">08</div><div class="name">人物の後ろに置く</div>
+      <div class="detail">テロップ → 人物の後ろ</div>
+      <span class="cat-badge badge-telop">テロップ</span>
+      <div class="desc">テロップが人物の後ろに入り、奥行きが出る。リッチ感・印象的な場面</div>
+      <div class="instruction">「このテロップを人物の後ろに置いて」</div>
+    </div>
+  </div>
+
+  <!-- 場面転換 09-12 -->
+  <div class="card" data-cat="scene">
+    <div class="preview a-zoomblur"><div class="scene"><div class="dot"></div></div></div>
+    <div class="card-info">
+      <div class="num">09</div><div class="name">ズームブラー</div>
+      <div class="detail">放射状ブレ + ズーム</div>
+      <span class="cat-badge badge-scene">場面転換</span>
+      <div class="desc">一気に寄りながら放射状にブレる。テンポよく次の場面へ（一番よく使う）</div>
+      <div class="instruction">「ズームブラーで転換して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="scene">
+    <div class="preview a-kaiteblur"><div class="scene"><div class="dot"></div></div></div>
+    <div class="card-info">
+      <div class="num">10</div><div class="name">回転ブラー</div>
+      <div class="detail">回転 + ブレ + ズーム</div>
+      <span class="cat-badge badge-scene">場面転換</span>
+      <div class="desc">回りながら寄ってブレる。少し強い転換</div>
+      <div class="instruction">「回転ブラーで転換して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="scene">
+    <div class="preview a-shiroflash"><div class="bg"></div><div class="flash"></div></div>
+    <div class="card-info">
+      <div class="num">11</div><div class="name">白フラッシュ</div>
+      <div class="detail">一瞬真っ白に飛ぶ</div>
+      <span class="cat-badge badge-scene">場面転換</span>
+      <div class="desc">一瞬真っ白に飛ぶ。明るい印象の転換</div>
+      <div class="instruction">「白フラッシュで転換して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="scene">
+    <div class="preview a-whip"><div class="scene-a"></div><div class="scene-b"></div></div>
+    <div class="card-info">
+      <div class="num">12</div><div class="name">ウィップ</div>
+      <div class="detail">横に流れて次の画面へ</div>
+      <span class="cat-badge badge-scene">場面転換</span>
+      <div class="desc">横に流れて次の画面へ。テンポのある転換</div>
+      <div class="instruction">「ウィップで転換して」</div>
+    </div>
+  </div>
+
+  <!-- 感情・強調 13-20 -->
+  <div class="card" data-cat="emo">
+    <div class="preview a-bikku">
+      <div class="box">テロップ！</div>
+      <div class="lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+    </div>
+    <div class="card-info">
+      <div class="num">13</div><div class="name">ビクッ</div>
+      <div class="detail">跳ねて震える + 驚き線</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">テロップが一瞬跳ねて小刻みに震える。驚き・ギクッとした瞬間</div>
+      <div class="instruction">「ビクッをつけて。驚き線も3本出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-fuan"><div class="scene"><div class="face"></div></div></div>
+    <div class="card-info">
+      <div class="num">14</div><div class="name">不安演出</div>
+      <div class="detail">彩度低下 + ビネット + 寄り</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">彩度が落ちて画面周りが暗くなりじわっと寄る。不安・嫌な予感が続く場面</div>
+      <div class="instruction">「彩度を落とし、ビネットをかけて画面を107%まで寄せて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-nghanko"><div class="stamp">NG</div></div>
+    <div class="card-info">
+      <div class="num">15</div><div class="name">NGハンコ</div>
+      <div class="detail">斜め押し付けスタンプ</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">角丸の枠に「NG」の文字を斜めに押し付ける。否定・「これはダメ」の場面</div>
+      <div class="instruction">「NGのハンコを押し付けるように出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-ikari">
+      <div class="center">
+        <div class="lines">
+          <div class="ray" style="transform:rotate(0deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(30deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(60deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(90deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(120deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(150deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(180deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(210deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(240deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(270deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(300deg) translateY(-35px)"></div>
+          <div class="ray" style="transform:rotate(330deg) translateY(-35px)"></div>
+        </div>
+        <div class="mark">💢</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="num">16</div><div class="name">怒り演出</div>
+      <div class="detail">集中線 + 怒りマーク + 揺れ</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">放射状の集中線＋漫画の怒りマークが脈打つ。怒り・強い拒絶</div>
+      <div class="instruction">「集中線と怒りマークを出して画面を揺らして」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-gaan">
+      <div class="bg"></div>
+      <div class="line"></div>
+      <div class="line"></div>
+      <div class="line"></div>
+      <div class="txt">絶望</div>
+    </div>
+    <div class="card-info">
+      <div class="num">17</div><div class="name">ガーン（絶望）</div>
+      <div class="detail">灰青 + 縦線がズーンと垂れる</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">背景が灰青色になり上から黒い縦線がズーンと垂れる。落ち込み・失敗・絶望</div>
+      <div class="instruction">「ガーンの演出。背景を絶望色にして縦線をズーンと下ろして」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-hikarimori">
+      <div class="bg"></div>
+      <div class="ray1"></div>
+      <div class="ray2"></div>
+    </div>
+    <div class="card-info">
+      <div class="num">18</div><div class="name">光漏れ（暗→明）</div>
+      <div class="detail">オレンジ・ピンクの斜め光</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">オレンジ・ピンクの光が斜めに流れる。ネガティブから明るい場面への切り替え</div>
+      <div class="instruction">「光漏れで明るい場面へ切り替えて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-yure"><div class="box">シェイク！</div></div>
+    <div class="card-info">
+      <div class="num">19</div><div class="name">揺れ（シェイク）</div>
+      <div class="detail">左右に細かく揺れる</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">画面が左右に細かく揺れる。衝撃・強調</div>
+      <div class="instruction">「画面を0.4秒揺らして」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="emo">
+    <div class="preview a-glitch"><div class="txt" data-text="GLITCH">GLITCH</div></div>
+    <div class="card-info">
+      <div class="num">20</div><div class="name">グリッチ</div>
+      <div class="detail">映像がズレて乱れる</div>
+      <span class="cat-badge badge-emo">感情・強調</span>
+      <div class="desc">画面がズレて乱れる。強い強調・ドラマチックな場面</div>
+      <div class="instruction">「グリッチをかけて」</div>
+    </div>
+  </div>
+
+  <!-- 差し込み・構成 21-27 -->
+  <div class="card" data-cat="comp">
+    <div class="preview a-sumaho"><div class="frame"><div class="screen"><div class="content"></div></div></div></div>
+    <div class="card-info">
+      <div class="num">21</div><div class="name">スマホ枠</div>
+      <div class="detail">スマホフレームに差し込む</div>
+      <span class="cat-badge badge-comp">差し込み</span>
+      <div class="desc">スマホの枠に画面を入れて差し込む。SNSの画面・通知を見せるとき</div>
+      <div class="instruction">「スマホ枠に入れて差し込んで」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-tsuchi">
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#1e3a5f,#0f2040);"></div>
+      <div class="banner"><div class="icon"></div><div class="txt">新しいメッセージが届きました</div></div>
+    </div>
+    <div class="card-info">
+      <div class="num">22</div><div class="name">通知バナー</div>
+      <div class="detail">上から降りてくるバナー</div>
+      <span class="cat-badge badge-comp">差し込み</span>
+      <div class="desc">スマホの通知が上から降りてくる。チャット・DMの演出</div>
+      <div class="instruction">「通知バナーを上から出して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-prof"><div class="card"><div class="avatar"></div><div class="info"><div class="n"></div><div class="h"></div></div></div></div>
+    <div class="card-info">
+      <div class="num">23</div><div class="name">プロフカード</div>
+      <div class="detail">角丸カード + 斜め入り</div>
+      <span class="cat-badge badge-comp">差し込み</span>
+      <div class="desc">プロフィール画面を角丸カードにして斜めから入れる。CTA・「プロフはこちら」</div>
+      <div class="instruction">「プロフカードを斜めから入れて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-tategaki"><div class="word">縦</div><div class="word">書</div></div>
+    <div class="card-info">
+      <div class="num">24</div><div class="name">縦書き大文字</div>
+      <div class="detail">画面左右に縦書き</div>
+      <span class="cat-badge badge-comp">構成</span>
+      <div class="desc">画面の左右に大きな縦書き。印象的なキーワード</div>
+      <div class="instruction">「縦書きの大文字で左右に入れて」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-irotai" style="flex-direction:column"><div class="label">キーワード</div><div class="label">ポイント</div></div>
+    <div class="card-info">
+      <div class="num">25</div><div class="name">色帯ラベル</div>
+      <div class="detail">色の帯にキーワード</div>
+      <span class="cat-badge badge-comp">構成</span>
+      <div class="desc">キーワードを色の帯に乗せる。分類・注目させたい言葉</div>
+      <div class="instruction">「色帯ラベルで強調して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-tobira" style="background:linear-gradient(135deg,#0f172a,#1e2a40)"><div class="num" style="color:rgba(255,255,255,.4)">第 3 章</div><div class="title">ポイント</div><div class="line"></div></div>
+    <div class="card-info">
+      <div class="num">26</div><div class="name">章の扉</div>
+      <div class="detail">全画面カード + 番号 + 見出し</div>
+      <span class="cat-badge badge-comp">構成</span>
+      <div class="desc">全画面カード＋番号＋見出し。N選・ステップ解説の章区切り</div>
+      <div class="instruction">「章の扉を入れて。第〇章のデザインで」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="comp">
+    <div class="preview a-obiobi">
+      <div class="header">📌 第1章：はじめに</div>
+      <div class="content"></div>
+    </div>
+    <div class="card-info">
+      <div class="num">27</div><div class="name">章名の帯</div>
+      <div class="detail">上に章名を常時表示</div>
+      <span class="cat-badge badge-comp">構成</span>
+      <div class="desc">章の間ずっと上に章名を表示。N選・ステップ解説</div>
+      <div class="instruction">「章名の帯を上に出して、この章の間ずっと表示して」</div>
+    </div>
+  </div>
+
+  <!-- 画面解説 28-31 -->
+  <div class="card" data-cat="screen">
+    <div class="preview"><div class="a-akawaku frame" style="border-color:#ef4444;border-style:solid;"></div></div>
+    <div class="card-info">
+      <div class="num">28</div><div class="name">赤枠ドロー</div>
+      <div class="detail">線を描くように枠が出る</div>
+      <span class="cat-badge badge-screen">画面解説</span>
+      <div class="desc">赤い四角が線を描くように出てくる。押す場所・見てほしい場所を示す</div>
+      <div class="instruction">「赤枠ドローで囲んで」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="screen">
+    <div class="preview a-spot"><div class="bg"></div><div class="frame"></div></div>
+    <div class="card-info">
+      <div class="num">29</div><div class="name">スポットライト</div>
+      <div class="detail">枠の外を暗くする</div>
+      <span class="cat-badge badge-screen">画面解説</span>
+      <div class="desc">赤枠の外を暗くして、枠の中だけ明るく見せる。より強調したいとき</div>
+      <div class="instruction">「スポットライトで枠の外を暗くして」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="screen">
+    <div class="preview a-marker"><div class="txt">重要な結果がここ</div></div>
+    <div class="card-info">
+      <div class="num">30</div><div class="name">マーカー</div>
+      <div class="detail">黄色マーカーが左→右へ</div>
+      <span class="cat-badge badge-screen">画面解説</span>
+      <div class="desc">黄色のマーカーが左から右へ引かれる。結果や重要な文章</div>
+      <div class="instruction">「マーカーを引いて強調して」</div>
+    </div>
+  </div>
+
+  <div class="card" data-cat="screen">
+    <div class="preview a-yoripan"><div class="scene"><div class="cursor"></div></div></div>
+    <div class="card-info">
+      <div class="num">31</div><div class="name">寄りパン</div>
+      <div class="detail">操作場所へゆっくり寄る</div>
+      <span class="cat-badge badge-screen">画面解説</span>
+      <div class="desc">操作する場所へゆっくり寄る（左右には動かさない）。画面解説では必ず</div>
+      <div class="instruction">「ここへ寄りパンして」</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>第5章 動きの型カタログ ／ AE×Claude Code 編集ガイド</p>
+  <p style="margin-top:4px">カードをクリックするとアニメーションがリスタートします</p>
+</footer>
+
+<script>
+// Filter
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.card').forEach(card => {
+      if (cat === 'all' || card.dataset.cat === cat) card.classList.remove('hidden');
+      else card.classList.add('hidden');
+    });
+    // update count
+    const visible = cat === 'all' ? 31 : document.querySelectorAll('.card:not(.hidden)').length;
+    btn.textContent = cat === 'all' ? 'すべて（31型）' : btn.textContent;
+  });
+});
+
+// Click to restart animation
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', () => {
+    const p = card.querySelector('.preview');
+    const clone = p.cloneNode(true);
+    p.parentNode.replaceChild(clone, p);
+  });
+});
+</script>
+</body>
+</html>
